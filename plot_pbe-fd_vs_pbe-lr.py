@@ -1,3 +1,7 @@
+"""
+Validation plot. Compare FD to LR to assess whether hyperpolarizabilities has contaminated FD.
+"""
+
 import functions
 from pprint import pprint
 import matplotlib.pyplot as plt
@@ -17,12 +21,11 @@ with open("mw_data_0001v2.yaml") as f, \
 molecules = functions.incommon(data1.keys(), data2.keys(), data4.keys())
 skip = []
 spin_filter = False
-func = "lda"
 
 # Make sure none of the diagonal elements are exactly zero
 # which is a consequence of the SCF not being converged
 for mol in molecules:
-    for c in data2[mol][func]["diagonal"]:
+    for c in data2[mol]["pbe"]["diagonal"]:
         if float(c) == 0.0:
             skip.append(mol)
 
@@ -37,7 +40,7 @@ molecules = [mol for mol in molecules if mol not in skip]
 xticks = range(len(molecules))
 
 # Now extract the data we want: relative errors for the mean polarizability for each molecule
-rel_err = [100 * (data2[mol][func]["mean"] / data1[mol][func]["mean"] - 1) for mol in molecules]
+rel_err = [100 * (data2[mol]["pbe"]["mean"] / data1[mol]["pbe"]["mean"] - 1) for mol in molecules]
 
 # Sort data based on the PBE relative error results
 molecules_sorted, rel_err_sorted = zip(*sorted(zip(molecules, rel_err), reverse=True, key=operator.itemgetter(1)))
@@ -47,7 +50,7 @@ spin_colors = ["deepskyblue" if data1[mol]["multiplicity"] == 1 else "crimson" f
 
 # Set up the figure with subplots
 FS = 14
-width=0.7
+width = 0.7
 
 fig = plt.figure(figsize=(15, 5), dpi=100)
 ax = plt.gca()
@@ -65,5 +68,5 @@ ax.set_xlim(-1, len(molecules))
 plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=FS)
 
 fig.tight_layout()
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
 plt.show()
-#fig.savefig("polarizability_benchmark_sorted.png", dpi=300)

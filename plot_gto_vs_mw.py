@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import operator
 import yaml
+import math
 
 import functions
 
@@ -13,15 +14,14 @@ with open("hg_data.yaml") as f, open("mw_data_0001v2.yaml") as g, open("datafile
     data3 = yaml.load(h)
 
 # Only use molecules common in both data sets
-spin_filter = "ALL" # either "ALL", "NSP" or "SP"
+spin_filter = False
 re_filter = False
 skip = []
 molecules = functions.incommon(data1.keys(), data2.keys(), data3.keys())
-print("Number of species: ", len(molecules))
 
 # Filter based on the spin information
-if spin_filter != "ALL":
-    molecules = filter(lambda mol: data1[mol]["spin"] == spin_filter, molecules)
+if spin_filter:
+    molecules = filter(lambda mol: data1[mol]["multiplicity"] > 0, molecules)
 
 # Define the xticks for the plots
 xticks = range(len(molecules))
@@ -43,6 +43,10 @@ if re_filter:
     molecules_sorted = molecules_subset
     rel_err_mw_gto_sorted = rel_err_mw_gto_subset
     xticks = range(len(molecules_sorted))
+
+print("Number of species: ", len(molecules))
+print("Mean relative error (MRE): ", sum(rel_err_mw_gto) / len(rel_err_mw_gto))
+print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err_mw_gto)) / len(molecules)))
 
 # Define edge colors based on spin polarizability
 spin_colors = ["deepskyblue" if data2[mol]["multiplicity"] == 1 else "crimson" for mol in molecules_sorted]
@@ -79,6 +83,6 @@ ax.grid(True, linestyle="--", linewidth=0.3)
 
 
 plt.legend(lines, ["Closed-shell", "Open-shell"], fontsize=fontsize)
-plt.tight_layout()
+fig.tight_layout()
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
 plt.show()
-#plt.savefig("{}".format(raw_input("Filename including extension: ")), dpi=500)

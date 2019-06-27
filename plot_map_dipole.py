@@ -63,5 +63,6 @@ for mol in data.keys():
         ax.set_ylim(-0.015, 1)
 
 ax.legend()
+fig.tight_layout()
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
 plt.show()
-#plt.savefig("fig_map_dipole.png", dpi=500)

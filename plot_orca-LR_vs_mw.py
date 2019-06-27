@@ -88,6 +88,6 @@ ax.grid(True, linestyle="--", linewidth=0.3)
 #plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=10)
 
 plt.legend(lines, ["Closed-shell", "Open-shell"], fontsize=fontsize)
-plt.tight_layout()
+fig.tight_layout()
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
 plt.show()
-#plt.savefig("{}".format(raw_input("Filename including extension: ")), dpi=500)

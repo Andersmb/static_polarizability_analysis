@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy import stats
 import numpy as np
+import os
 from pprint import pprint
 
 import functions
@@ -17,6 +18,7 @@ with open("mw_data_0001v2.yaml") as f, \
 
 skip = []
 molecules = functions.incommon(mw.keys(), hg.keys(), orca.keys())
+molecules = [mol for mol in molecules if mol not in skip]
 print("Number of species: ", len(molecules))
 
 re_hgmw = [100 * (hg[mol]["pbe"]["mean"] / mw[mol]["pbe"]["mean"] - 1) for mol in molecules]
@@ -41,5 +43,5 @@ print("Least-square fit parameter r^2: ", r**2)
 
 plt.grid()
 plt.tight_layout()
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
 plt.show()
-#plt.savefig("{}".format(raw_input("Name of file incl. extension: ")), dpi=100)
