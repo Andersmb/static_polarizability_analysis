@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#SBATCH --account=nn9330k
+#SBATCH --job-name=licn_pbe_+0001_z
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=30:00:00
+#SBATCH --mem=30GB
+#SBATCH --partition=normal
+#SBATCH --output=licn_pbe_+0001_z.log
+#SBATCH --error=licn_pbe_+0001_z.err
+
+module purge
+module restore mrchem
+
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
+SCRATCH_DIR=/global/work/$USER/MRCHEM-$SLURM_JOBID
+mkdir -p $SCRATCH_DIR
+cd $SCRATCH_DIR
+
+cp ${SLURM_SUBMIT_DIR}/licn_pbe_+0001_z.inp mrchem.inp
+cp -r /global/work/ambr/benchmark_orbitals/licn_pbe_000_orbitals orbitals
+
+/home/ambr/mrchem/install-mrchem/bin/mrchem -D mrchem.inp
+mpirun /home/ambr/mrchem/install-mrchem/bin/mrchem.x @mrchem.inp > licn_pbe_+0001_z.out
+
+cp licn_pbe_+0001_z.out ${SLURM_SUBMIT_DIR}/
+
+exit 0

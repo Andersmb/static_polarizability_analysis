@@ -48,7 +48,6 @@ def get_HG_data(datafile, functionals=[]):
         yaml.dump(data, outfile, default_flow_style=False)
     return data
 
-
 def decimal(s):
     """
     Perform the following conversions:
@@ -138,9 +137,8 @@ def get_pol_data(datadir):
         
     
     # now write raw data to CSV file using a useful pandas command
-    pandas.DataFrame(rawdata).to_csv("mw_rawdata.csv")
-    return rawdata
-   
+    pandas.DataFrame(rawdata).to_csv("{}_rawdata.csv".format(os.path.basename(datadir)))
+    return
 
 def get_mw_pol_fdu(rawdatafile, fieldstrength=0.001, bohr_to_ang=1.8897162):
     """
@@ -291,11 +289,11 @@ def get_mw_pol_fde(rawdatafile, fieldstrength=0.001, bohr_to_ang=1.8897162):
             # Now store the mean of the polarizability tensor diagonal
             data[mol][func]["mean"] = sum(data[mol][func]["diagonal"]) / 3
     # Now write the data to yaml file format
-    with open("mw_data.yaml", "w") as f:
+    with open(raw_input("Give name of file including .yaml extension: "), "w") as f:
         yaml.dump(data, f, default_flow_style=False)
     return data
 
-def get_mw_pol_response(datadir, bohr_to_ang=1.8897162):
+def get_mw_pol_response(datadir, functional=None, bohr_to_ang=1.8897162):
     """
     Extracts polarizabilities from MRChem output files.
     
@@ -311,7 +309,7 @@ def get_mw_pol_response(datadir, bohr_to_ang=1.8897162):
             continue
 
         # Get molecule
-        mol  = os.path.basename(job).split(".")[0]
+        mol = os.path.basename(job).split(".")[0]
         data[mol] = {}
 
         with open(job.replace(".out", ".inp")) as f: lines = f.readlines()
@@ -323,9 +321,10 @@ def get_mw_pol_response(datadir, bohr_to_ang=1.8897162):
         data[mol][func] = {}
         data[mol][func]["diagonal"] = map(lambda x: x / bohr_to_ang**3, MrchemOut(job).polarizability_diagonal(unit="au"))
         data[mol][func]["mean"] = sum(data[mol][func]["diagonal"]) / 3
-        
-    return data
 
+    with open("mw_data_response_{}.yaml".format(functional), "w") as f:
+        yaml.dump(data, f)
+    return data
 
 def get_pol_data_orca(datadir):
     """
@@ -378,5 +377,53 @@ def get_pol_data_orca(datadir):
         rawdata["walltime"].append(output.walltime())
 
     # now write raw data to CSV file using a useful pandas command
-    pandas.DataFrame(rawdata).to_csv(os.path.join(cwd, "orca_rawdata.csv"))
+    pandas.DataFrame(rawdata).to_csv(os.path.join(cwd, raw_input("Give name of file including extension: ")))
     return rawdata
+
+
+def get_pol_data_orca_response(datadir, bohr_to_ang=1.8897162):
+    """
+    Collect the polarizability data from Orca output files, and write them to a yaml file.
+    :param datadir: path to directory containing output files
+    :param bohr_to_ang: conversion factor. Default value set to 1.8897162
+    :return: dict
+    """
+    files = glob.glob("{}/*.out".format(datadir))
+    data = {}
+
+    for f in files:
+        output = OrcaOut(f)
+        if not output.normaltermination():
+            continue
+
+        mol = os.path.basename(f).split("_")[0]
+        data[mol] = {}
+        data[mol]["diagonal"] = map(lambda x: x / bohr_to_ang**3, output.polarizability_diagonal())
+        data[mol]["mean"] = sum(data[mol]["diagonal"]) / 3
+
+    with open("{}.yaml".format(datadir), "w") as f:
+        yaml.dump(data, f)
+
+    return data
+
+
+def incommon(*lists):
+    """
+    Return a set of elements common to the passed lists.
+
+    Arbitrarily choose the first list of passed lists, and then update based on the set.intersection_update
+    result.
+
+    :param lists: dictionaries containing keys corresponding to the species.
+    :return: set
+    """
+    s = set(lists[0])
+    for l in lists[1:]:
+        s.intersection_update(set(l))
+    return s
+
+def common_species():
+    with open("hg_data.yaml") as f, open("mw_data_0001v2.yaml") as g, open("datafiles_orca_response_v2.yaml") as h:
+        return incommon(yaml.load(f).keys(),
+                        yaml.load(g).keys(),
+                        yaml.load(h).keys())

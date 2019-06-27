@@ -14,27 +14,28 @@ for mol in data1.keys() + data2.keys():
     if mol in data1.keys() and mol in data2.keys() and mol not in skip and mol not in molecules:
         molecules.append(mol)
 
-# Now extract the data we want: relative errors for the mean polarizability for each molecule
-rel_err_mw_gto = [100 * (data1[mol]["pbe"]["mean"] / data2[mol]["pbe"]["mean"] - 1) for mol in molecules]
 rel_err_mw_cc = [100 * (data2[mol]["pbe"]["mean"] / data1[mol]["ccsd(t)"]["mean"] - 1) for mol in molecules]
 rel_err_gto_cc = [100 * (data1[mol]["pbe"]["mean"] / data1[mol]["ccsd(t)"]["mean"] - 1) for mol in molecules]
 
-
 fig = plt.figure(figsize=(10, 10))
 ax = plt.gca()
-fsize = 20
+FS = 16
+props = {"linewidth": 3,}
 
 # Plot data
 ax.boxplot([rel_err_gto_cc, rel_err_mw_cc], 
             notch=False,
-            showfliers=False,
+            showfliers=True,
             positions=[1, 1.2],
-            showmeans=True)
+            showmeans=True,
+            boxprops=props,
+            medianprops={"linewidth": 4, "color": "gray"},
+            flierprops={"marker": "o", "markersize": 10})
 
-ax.set_xticklabels(["PBE+GTO\nvs\nCCSD(T)", "PBE+MW\nvs\nCCSD(T)"], fontsize=fsize)
-ax.set_ylabel("Relative Error [%]", fontsize=fsize)
-ax.tick_params(axis="y", labelsize=fsize)
+ax.set_xticklabels(["PBE/GTO\nvs\nCCSD(T)", "PBE/MW\nvs\nCCSD(T)"], fontsize=FS)
+ax.set_ylabel("Relative Error [%]", fontsize=FS)
+ax.tick_params(axis="y", labelsize=FS)
 ax.set_xlim(0.9, 1.3)
 
 plt.tight_layout()
-plt.savefig("polarizability_benchmark_sorted.png", dpi=300)
+plt.savefig("fig_boxplots", dpi=200)

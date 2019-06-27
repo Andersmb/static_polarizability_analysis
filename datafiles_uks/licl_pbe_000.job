@@ -1,0 +1,100 @@
+#!/bin/bash -x
+
+#SBATCH --job-name=licl_pbe_000
+#SBATCH --output=licl_pbe_000.log
+#SBATCH --error=licl_pbe_000.err
+
+#SBATCH --account=nn9330k
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=16
+#SBATCH --time=0-5:00:00
+#SBATCH --partition=singlenode
+#SBATCH --mem=30GB
+#SBATCH --mail-type=ALL
+
+module purge
+module restore mrchem
+
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
+echo 'OMP_NUM_THREADS ' $OMP_NUM_THREADS
+echo 'SLURM_CPUS_PER_TASK ' $SLURM_CPUS_PER_TASK
+
+cd ${SLURM_SUBMIT_DIR}
+SCRATCH=/global/work/ambr/MRCHEM-$SLURM_JOBID
+mkdir -p ${SCRATCH}
+
+cd ${SCRATCH}
+cp ${SLURM_SUBMIT_DIR}/licl_pbe_000.inp mrchem.inp
+
+## test if fourth argument is given. if yes the copy orbitals
+if [ ! -z  ]; then
+    echo "MW orbitals copied to ${SCRATCH}"
+    cp -r  orbitals
+fi
+
+/home/ambr/mrchem/install-mrchem/bin/mrchem -D mrchem.inp
+mpirun /home/ambr/mrchem/install-mrchem/bin/mrchem.x @mrchem.inp > licl_pbe_000.out
+
+cp licl_pbe_000.out ${SLURM_SUBMIT_DIR}/
+
+## now make directory in /work for storing orbitals
+ORBDIR=/global/work/ambr/MWorbitals_${SLURM_JOBID}
+mkdir -p $ORBDIR
+cp -r orbitals /global/work/ambr/benchmark_orbitals/licl_pbe_000_orbitals
+
+mv orbitals $ORBDIR/
+
+## write file with path to orbitals
+echo $ORBDIR > ${SLURM_SUBMIT_DIR}/licl_pbe_000.wherearetheorbitals
+
+## now clean up
+if [ -d ${SCRATCH} ]; then
+    rm -rf ${SCRATCH}
+fi
+
+exit 0
+#/////////////////////////////////////////////////
+#Submitted at Thu Jun 6 11:52:33 CEST 2019
+#Input file:
+#>>> rel_prec = 1.0e-7
+#>>> MRA {
+#>>> min_scale = -5
+#>>> corner = [ -1, -1, -1 ]
+#>>> boxes = [ 2, 2, 2 ]
+#>>> }
+#>>> Molecule {
+#>>> charge = 0
+#>>> multiplicity = 1
+#>>> angstrom = true
+#>>> $coords
+#>>> Li 0.0000 0.0000 0.0000
+#>>> Cl 0.0000 0.0000 2.0207
+#>>> $end
+#>>> }
+#>>> WaveFunction {
+#>>> method = DFT
+#>>> restricted = false
+#>>> }
+#>>> DFT {
+#>>> spin = true
+#>>> $functionals
+#>>> PBE
+#>>> $end
+#>>> }
+#>>> SCF {
+#>>> orbital_thrs = 1.0e-6
+#>>> kain = 4
+#>>> initial_guess = SAD_DZ
+#>>> write_orbitals = true
+#>>> }
+#>>> Properties {
+#>>> scf_energy = true
+#>>> dipole_moment = true
+#>>> }
+#>>> ExternalField {
+#>>> electric_run = true
+#>>> electric_field = [ 0.0, 0.0, 0.00 ]
+#>>> }
+#//////////////////////////////////////////////////

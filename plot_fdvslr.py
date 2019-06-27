@@ -1,59 +1,58 @@
-import functions as f
+import functions
 from pprint import pprint
 import matplotlib.pyplot as plt
-import sys, operator
+import sys, operator, yaml
+from pprint import pprint
 
 # Get data structures
-func = "pbe"
-#data1 = f.get_mw_pol_fdu("mw_rawdata_0001_v2.csv", fieldstrength=0.001)
-data1 = f.get_mw_pol_fde("orca_rawdata.csv", fieldstrength=0.01)
-data3 = f.get_HG_data("hg_data.csv", [func])
+with open("mw_data_0001v2.yaml") as f, \
+        open("mw_data_response_lda.yaml") as g, \
+        open("mw_data_response_pbe.yaml") as h, \
+        open("datafiles_orca_response_V2.yaml") as i:
+    data1 = yaml.load(f)
+    data2 = yaml.load(g)
+    data3 = yaml.load(h)
+    data4 = yaml.load(i)
 
-data1 = f.get_mw_pol_response("datafiles_pbe_response")
-data2 = f.get_mw_pol_fdu("mw_rawdata_0001_v2.csv")
-
+molecules = functions.incommon(data1.keys(), data2.keys(), data4.keys())
 skip = []
-spin_filter = "ALL"
+spin_filter = False
+func = "lda"
 
 # Make sure none of the diagonal elements are exactly zero
 # which is a consequence of the SCF not being converged
-for mol in data1.keys():
-    for c in data1[mol][func]["diagonal"]:
+for mol in molecules:
+    for c in data2[mol][func]["diagonal"]:
         if float(c) == 0.0:
             skip.append(mol)
 
-# Only use molecules common in both data sets
-molecules = []
-for mol in data1.keys() + data2.keys():
-    if mol in data1.keys() and mol in data2.keys() and mol not in skip and mol not in molecules:
-        molecules.append(mol)
-
 # Filter out molecules matching the spin polarization
-if spin_filter != "ALL":
-    molecules = filter(lambda mol: data3[mol]["spin"] == spin_filter, molecules)
+if spin_filter:
+    molecules = filter(lambda mol: data1[mol]["multiplicity"] > 1, molecules)
+
+# Skip desired molecules
+molecules = [mol for mol in molecules if mol not in skip]
 
 # Define the xticks for the plots
 xticks = range(len(molecules))
 
 # Now extract the data we want: relative errors for the mean polarizability for each molecule
-rel_err = [100 * (data1[mol][func]["mean"] / data2[mol][func]["mean"] - 1) for mol in molecules]
+rel_err = [100 * (data2[mol][func]["mean"] / data1[mol][func]["mean"] - 1) for mol in molecules]
 
 # Sort data based on the PBE relative error results
 molecules_sorted, rel_err_sorted = zip(*sorted(zip(molecules, rel_err), reverse=True, key=operator.itemgetter(1)))
 
 # Define edge colors based on spin polarizability
-spin_colors = ["deepskyblue" if data3[mol]["spin"] == "NSP" else "crimson" for mol in molecules_sorted]
+spin_colors = ["deepskyblue" if data1[mol]["multiplicity"] == 1 else "crimson" for mol in molecules_sorted]
 
 # Set up the figure with subplots
-fontsize = 14
-width=0.8
+FS = 14
+width=0.7
 
-fig = plt.figure(figsize=(30, 10))
+fig = plt.figure(figsize=(15, 5), dpi=100)
 ax = plt.gca()
-ax.tick_params(axis="y", labelsize=24, rotation=90)
-ax.set_ylabel(" ", fontsize=20)
-
-fig.text(0.01, 0.5, "Relative Error [%]", fontsize=40, rotation=90, ha="center", va="center")
+ax.tick_params(axis="y", labelsize=FS)
+ax.set_ylabel("Relative Error [%]", fontsize=FS)
 
 # Plot data
 for i in range(len(molecules_sorted)):
@@ -63,7 +62,8 @@ ax.grid(True, linestyle="--")
 ax.set_xlim(-1, len(molecules))
 
 # Place the molecule names on the xtick positions, rotation by 90 degrees
-plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=40)
+plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=FS)
 
 fig.tight_layout()
-fig.savefig("polarizability_benchmark_sorted.png", dpi=300)
+plt.show()
+#fig.savefig("polarizability_benchmark_sorted.png", dpi=300)
