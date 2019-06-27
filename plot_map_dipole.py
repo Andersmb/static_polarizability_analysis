@@ -42,12 +42,12 @@ for mol in data.keys():
         continue
     data[mol]["x"], data[mol]["y"] = zip(*sorted(zip(data[mol]["x"], data[mol]["y"])))
 
-FS =16
+FS = 16
 
 fig = plt.Figure(figsize=(10,10))
 ax = plt.gca()
-ax.set_xlabel("Field strength applied along x [a.u.]", fontsize=FS)
-ax.set_ylabel("x Component of dipole moment [a.u.]", fontsize=FS)
+ax.set_xlabel("Field strength along x [a.u.]", fontsize=FS)
+ax.set_ylabel("x-component of dipole moment [a.u.]", fontsize=FS)
 plt.grid()
 for mol in data.keys():
     if len(data[mol]["y"]) > 1:

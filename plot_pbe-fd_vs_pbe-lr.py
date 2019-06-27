@@ -45,6 +45,10 @@ rel_err = [100 * (data2[mol]["pbe"]["mean"] / data1[mol]["pbe"]["mean"] - 1) for
 # Sort data based on the PBE relative error results
 molecules_sorted, rel_err_sorted = zip(*sorted(zip(molecules, rel_err), reverse=True, key=operator.itemgetter(1)))
 
+print("Number of species: ", len(molecules_sorted))
+print("Mean relative error (MRE): ", sum(rel_err_mw_gto) / len(rel_err_mw_gto))
+print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err_mw_gto)) / len(molecules_sorted)))
+
 # Define edge colors based on spin polarizability
 spin_colors = ["deepskyblue" if data1[mol]["multiplicity"] == 1 else "crimson" for mol in molecules_sorted]
 

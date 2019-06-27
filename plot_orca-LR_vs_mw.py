@@ -54,7 +54,9 @@ if re_filter:
 # Define edge colors based on spin polarizability
 spin_colors = ["deepskyblue" if data1[mol]["multiplicity"] == 1 else "crimson" for mol in molecules_sorted]
 
-print("Number of species in analysis: ", len(molecules_sorted))
+print("Number of species: ", len(molecules_sorted))
+print("Mean relative error (MRE): ", sum(rel_err_mw_gto) / len(rel_err_mw_gto))
+print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err_mw_gto)) / len(molecules_sorted)))
 
 
 # Set up the figure with subplots

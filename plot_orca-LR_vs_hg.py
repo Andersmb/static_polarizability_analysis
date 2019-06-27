@@ -43,7 +43,9 @@ if re_filter:
     rel_err_mw_gto_sorted = rel_err_mw_gto_subset
     xticks = range(len(molecules_sorted))
 
-print("Number of species in analysis: ", len(molecules_sorted))
+print("Number of species: ", len(molecules_sorted))
+print("Mean relative error (MRE): ", sum(rel_err_mw_gto) / len(rel_err_mw_gto))
+print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err_mw_gto)) / len(molecules_sorted)))
 
 # Define edge colors based on spin polarizability
 spin_colors = ["deepskyblue" if data1[mol]["spin"] == "NSP" else "crimson" for mol in molecules_sorted]
