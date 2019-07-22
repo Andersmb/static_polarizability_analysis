@@ -9,7 +9,10 @@ def get_HG_data(datafile, functionals=[]):
     Collect data for the functionals we are interested in,
     and convert to yaml format. 
     Return the yaml data file name.
-    Give name of wanted functionals in list as kwarg to function
+    Give name of wanted functionals in list as kwarg to function.
+
+    Params
+    functionals : list of functionals present in HG data set. case insensitive
     """
     with open(datafile, "r") as ref:
         raw_data = ref.readlines()[:133]
@@ -423,7 +426,9 @@ def incommon(*lists):
     return s
 
 def common_species():
-    with open("hg_data.yaml") as f, open("mw_data_0001v2.yaml") as g, open("datafiles_orca_response_v2.yaml") as h:
+    with open("hg_data.yaml") as f, \
+         open("mw_data_0001v2.yaml") as g, \
+         open("datafiles_orca_response_v2.yaml") as h:
         return incommon(yaml.load(f).keys(),
                         yaml.load(g).keys(),
                         yaml.load(h).keys())

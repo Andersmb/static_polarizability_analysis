@@ -5,6 +5,8 @@ import operator
 import yaml
 import math
 
+import functions
+
 # Get data structures
 with open("mw_data_0001v2.yaml") as f, open("datafiles_orca_response_v2.yaml") as g:
     data1 = yaml.load(f)
@@ -15,10 +17,7 @@ with open("mw_data_0001v2.yaml") as f, open("datafiles_orca_response_v2.yaml") a
 skip = []
 spin_filter = "ALL" # either "ALL", "NSP" or "SP"
 re_filter = False
-molecules = []
-for mol in data1.keys():
-    if mol in data2.keys() and mol not in skip and mol not in molecules:
-        molecules.append(mol)
+molecules = functions.common_species()
 
 # Filter based on the spin information
 if spin_filter != "ALL":
@@ -29,12 +28,11 @@ xticks = range(len(molecules))
 
 # Now extract the data we want: relative errors for the mean polarizability for each molecule
 rel_err_mw_gto = [100 * (data1[mol]["pbe"]["mean"] / data2[mol]["mean"] - 1) for mol in molecules]
-print("Mean relative error (MRE): ", sum(rel_err_mw_gto) / len(rel_err_mw_gto))
-print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err_mw_gto)) / len(molecules)))
+
 print("Molecules with |RE| > 0.5 %:")
 for re, mol in zip(rel_err_mw_gto, molecules):
     if abs(re) > 0.5:
-        print("* {}, {}".format(mol, re))
+        print("    ", mol, re)
 
 # Sort data based on the PBE relative error results
 molecules_sorted, rel_err_mw_gto_sorted = zip(*sorted(zip(molecules, rel_err_mw_gto), reverse=True, key=operator.itemgetter(1)))
@@ -84,12 +82,14 @@ for i in range(len(molecules_sorted)):
 ax.plot(range(len(molecules_sorted)), [0.5 for i in range(len(molecules_sorted))], color="black", linestyle="--")
 ax.plot(range(len(molecules_sorted)), [-0.5 for i in range(len(molecules_sorted))], color="black", linestyle="--")
 
+# Place the molecule names on the xtick positions, rotation by 90 degrees
+plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=9)
 ax.grid(True, linestyle="--", linewidth=0.3)
 
-# Place the molecule names on the xtick positions, rotation by 90 degrees
-#plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=10)
+# Title
+plt.title("GTO Response   vs   MW Finite Differences", fontsize=fontsize+2)
 
 plt.legend(lines, ["Closed-shell", "Open-shell"], fontsize=fontsize)
 fig.tight_layout()
-plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=700, transparent=True)
 plt.show()

@@ -2,23 +2,21 @@
 Validation plot. Compare FD to LR to assess whether hyperpolarizabilities has contaminated FD.
 """
 
-import functions
 from pprint import pprint
 import matplotlib.pyplot as plt
 import sys, operator, yaml
 from pprint import pprint
+import math
+
+import functions
 
 # Get data structures
 with open("mw_data_0001v2.yaml") as f, \
-        open("mw_data_response_lda.yaml") as g, \
-        open("mw_data_response_pbe.yaml") as h, \
-        open("datafiles_orca_response_V2.yaml") as i:
+        open("mw_data_response_pbe.yaml") as g:
     data1 = yaml.load(f)
     data2 = yaml.load(g)
-    data3 = yaml.load(h)
-    data4 = yaml.load(i)
 
-molecules = functions.incommon(data1.keys(), data2.keys(), data4.keys())
+molecules = functions.incommon(data1.keys(), data2.keys())
 skip = []
 spin_filter = False
 
@@ -46,17 +44,17 @@ rel_err = [100 * (data2[mol]["pbe"]["mean"] / data1[mol]["pbe"]["mean"] - 1) for
 molecules_sorted, rel_err_sorted = zip(*sorted(zip(molecules, rel_err), reverse=True, key=operator.itemgetter(1)))
 
 print("Number of species: ", len(molecules_sorted))
-print("Mean relative error (MRE): ", sum(rel_err_mw_gto) / len(rel_err_mw_gto))
-print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err_mw_gto)) / len(molecules_sorted)))
+print("Mean relative error (MRE): ", sum(rel_err) / len(rel_err))
+print("RMSRE: ", math.sqrt(sum(map(lambda x: x**2, rel_err)) / len(molecules_sorted)))
 
 # Define edge colors based on spin polarizability
 spin_colors = ["deepskyblue" if data1[mol]["multiplicity"] == 1 else "crimson" for mol in molecules_sorted]
 
 # Set up the figure with subplots
-FS = 14
+FS = 12
 width = 0.7
 
-fig = plt.figure(figsize=(15, 5), dpi=100)
+fig = plt.figure(figsize=(5, 5), dpi=100)
 ax = plt.gca()
 ax.tick_params(axis="y", labelsize=FS)
 ax.set_ylabel("Relative Error [%]", fontsize=FS)
@@ -65,7 +63,7 @@ ax.set_ylabel("Relative Error [%]", fontsize=FS)
 for i in range(len(molecules_sorted)):
     ax.bar(xticks[i], rel_err_sorted[i], color=spin_colors[i], edgecolor="black", width=width)
 
-ax.grid(True, linestyle="--")
+ax.grid(True, linestyle="--", linewidth=0.3)
 ax.set_xlim(-1, len(molecules))
 
 # Place the molecule names on the xtick positions, rotation by 90 degrees

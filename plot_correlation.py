@@ -17,7 +17,7 @@ with open("mw_data_0001v2.yaml") as f, \
     orca = yaml.load(h)
 
 skip = []
-molecules = functions.incommon(mw.keys(), hg.keys(), orca.keys())
+molecules = functions.common_species()
 molecules = [mol for mol in molecules if mol not in skip]
 print("Number of species: ", len(molecules))
 

@@ -21,10 +21,14 @@ sys.path.append("/Users/abr121/Documents/github/computational_chemistry")
 from MRChem import MrchemOut
 import numpy as np
 
+import functions
+
 datadir = os.path.join(os.getcwd(), "datafiles_map_u")
 
 outputfiles = glob("{}/*.out".format(datadir))
+skip = []
 molecules = map(lambda x: os.path.basename(x).split("_")[0], outputfiles)
+
 fields = map(lambda x: os.path.basename(x).split("_")[2], outputfiles)
 
 data = {mol:{"x": [], "y": []} for mol in molecules}
@@ -42,6 +46,7 @@ for mol in data.keys():
         continue
     data[mol]["x"], data[mol]["y"] = zip(*sorted(zip(data[mol]["x"], data[mol]["y"])))
 
+
 FS = 16
 
 fig = plt.Figure(figsize=(10,10))
@@ -49,20 +54,24 @@ ax = plt.gca()
 ax.set_xlabel("Field strength along x [a.u.]", fontsize=FS)
 ax.set_ylabel("x-component of dipole moment [a.u.]", fontsize=FS)
 plt.grid()
+counter = 0
 for mol in data.keys():
-    if len(data[mol]["y"]) > 1:
+    if len(data[mol]["y"]) > 1 and mol not in skip:
+        counter += 1
         # Extrapolate the line formed by the two first points: e=0 and e=0.001
         slope = (data[mol]["y"][1] - data[mol]["y"][0]) / (data[mol]["x"][1] - data[mol]["x"][0])
         xs = np.linspace(0, 0.006)
         ys = slope * xs + data[mol]["y"][0]
 
         # Then plot
-        ax.scatter(data[mol]["x"], data[mol]["y"], marker="o", edgecolor="black", s=20, label=mol)
+        ax.scatter(data[mol]["x"], data[mol]["y"], marker="o", edgecolor="black", linewidths=0.5, s=20, label=mol)
         ax.plot(xs, ys, linewidth=0.5, color="black", linestyle="--")
         ax.set_xlim(-0.0001, 0.0061)
         ax.set_ylim(-0.015, 1)
 
+print("Number of species: ", counter)
+
 ax.legend()
-fig.tight_layout()
+plt.tight_layout()
 plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
 plt.show()

@@ -17,7 +17,7 @@ with open("hg_data.yaml") as f, open("mw_data_0001v2.yaml") as g, open("datafile
 spin_filter = False
 re_filter = False
 skip = []
-molecules = functions.incommon(data1.keys(), data2.keys(), data3.keys())
+molecules = functions.common_species()
 
 # Filter based on the spin information
 if spin_filter:
@@ -76,13 +76,16 @@ for i in range(len(molecules_sorted)):
 ax.plot(range(len(molecules_sorted)), [0.5 for i in range(len(molecules_sorted))], color="black", linestyle="--")
 ax.plot(range(len(molecules_sorted)), [-0.5 for i in range(len(molecules_sorted))], color="black", linestyle="--")
 
-ax.grid(True, linestyle="--", linewidth=0.3)
+#ax.grid(True, linestyle="--", linewidth=0.3)
 
 # Place the molecule names on the xtick positions, rotation by 90 degrees
-#plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=70, fontsize=10)
+plt.xticks(xticks, [mol.upper() for mol in molecules_sorted], rotation=90, fontsize=9)
+ax.grid(True, linestyle="--", linewidth=0.3)
 
+# Title
+plt.title("GTO Finite Differences   vs   MW Finite Differences", fontsize=fontsize+2)
 
 plt.legend(lines, ["Closed-shell", "Open-shell"], fontsize=fontsize)
 fig.tight_layout()
-plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=100)
+plt.savefig("fig_{}.png".format(__file__.split(".")[0]), dpi=700, transparent=True)
 plt.show()
