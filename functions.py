@@ -401,8 +401,9 @@ def get_pol_data_orca_response(datadir, bohr_to_ang=1.8897162):
 
         mol = os.path.basename(f).split("_")[0]
         data[mol] = {}
-        data[mol]["diagonal"] = map(lambda x: x / bohr_to_ang**3, output.polarizability_diagonal())
-        data[mol]["mean"] = sum(data[mol]["diagonal"]) / 3
+        data[mol]["pbe"] = {}
+        data[mol]["pbe"]["diagonal"] = map(lambda x: x / bohr_to_ang**3, output.polarizability_diagonal())
+        data[mol]["pbe"]["mean"] = sum(data[mol]["pbe"]["diagonal"]) / 3
 
     with open("{}.yaml".format(datadir), "w") as f:
         yaml.dump(data, f)
